@@ -1,7 +1,7 @@
 module Main where
 
 import Brick
-import Brick.BChan (newBChan, writeBChan)
+import Brick.BChan (newBChan, readBChan, writeBChan)
 import Brick.Widgets.Border
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
@@ -50,9 +50,11 @@ main2 = do
     forkIO $
         forever $ do
             writeBChan chan Tick
-            threadDelay 100000
-    putStrLn "hi"
+            threadDelay 1000000
+    forever $ do
+        elem <- readBChan chan
+        putStrLn "hi"
 
 -- void $ customMain (V.mkVty V.defaultConfig) (Just chan) (App s e n) s
 
-main = main1
+main = main2

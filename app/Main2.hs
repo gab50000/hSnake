@@ -7,13 +7,19 @@ import Brick.BChan (
  )
 import Brick.Widgets.Border
 import Control.Concurrent (
+    MVar,
+    ThreadId,
     forkIO,
+    newEmptyMVar,
+    putMVar,
+    takeMVar,
     threadDelay,
  )
 import Control.Monad (
     forever,
     void,
  )
+import Data.Traversable (forM)
 import qualified Graphics.Vty as V
 
 data Tick = Tick
@@ -40,4 +46,25 @@ initApp =
         , appAttrMap = const $ attrMap V.defAttr []
         }
 
-main = void $ defaultMain initApp (AppState "hello")
+printAndWait :: Int -> IO ()
+printAndWait x = print x >> threadDelay 1000000
+
+fillMVar :: MVar Integer -> IO ThreadId
+fillMVar m = forkIO $ forever $ mapM_ (\i -> putMVar m i >> threadDelay 500000) [1 .. 10]
+
+drainMVar :: MVar Integer -> IO ()
+drainMVar m = forever $ takeMVar m >>= print
+
+setRefreshRate :: Int -> IO (MVar Integer)
+setRefreshRate rate = do
+    m <- newEmptyMVar
+    forkIO $
+        forever $ do
+            forM [1 .. 10] $ \i -> do
+                putMVar m i
+                threadDelay rate
+    return m
+
+main = do
+    m <- setRefreshRate 100000
+    drainMVar m

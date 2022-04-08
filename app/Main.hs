@@ -46,20 +46,7 @@ initApp =
         , appAttrMap = const $ attrMap V.defAttr []
         }
 
-setRefreshRate :: Int -> IO (MVar Tick)
-setRefreshRate rate = do
-    m <- newEmptyMVar
-    forkIO $
-        forever $ do
-            putMVar m Tick
-            threadDelay rate
-    return m
-
-main1 :: IO ()
-main1 = void $ defaultMain initApp (AppState Snk.newGame)
-
-main2 :: IO ()
-main2 = do
+main = do
     chan <- newBChan 10
     m <- newEmptyMVar
     forkIO $
@@ -69,5 +56,3 @@ main2 = do
     let buildVty = V.mkVty V.defaultConfig
     initialVty <- buildVty
     void $ customMain initialVty buildVty (Just chan) initApp (AppState Snk.newGame)
-
-main = main2
